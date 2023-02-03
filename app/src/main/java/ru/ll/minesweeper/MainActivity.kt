@@ -2,6 +2,7 @@ package ru.ll.minesweeper
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import java.util.concurrent.Executors
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
@@ -11,18 +12,60 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        println("рекурсия $indexRandom раз")
+
+        Executors.newCachedThreadPool().execute {
+            testMinesweeper(10, 10, 18, 1000, ::createNotEmptyField)
+            testMinesweeper(10, 10, 18, 1000, ::createFieldWithMines)
+            testMinesweeper(10, 10, 18, 1000, ::createFieldWithRecursion)
+        }
 //        println(
-//            "печать ${
-//                addMines(createEmptyField(10, 10), 100)
+//            "поле рекурсивного метода ${
+//                createFieldWithRecursionRandom(10, 10, 18)
 //                    .joinToString("\n")
 //            }"
 //        )
-        println("печать ${createNotEmptyField(10, 10, 18).joinToString("\n")}")
-//        println("печать ${createFieldWithMines(10, 10, 18).joinToString("\n")}")
+//        println("рекурсивная функция метода createFieldWithRecursionRandom $indexRandom раз")
+//
+//        indexRandom = 0
+//
+//        println(
+//            "поле рекурсивного метода ${
+//                createFieldWithRecursion(10, 10, 18)
+//                    .joinToString("\n")
+//            }"
+//        )
+//        println("рекурсивная функция метода createFieldWithRecursion $indexRandom раз")
+//        println("печать ${createNotEmptyField(10, 10, 18).joinToString("\n")}")
     }
 
-    fun createEmptyField(width: Int, height: Int): List<MutableList<Boolean>> {
+    fun testMinesweeper(
+        width: Int,
+        height: Int,
+        mines: Int,
+        iterations: Int,
+        fieldGenerator: (Int, Int, Int) -> List<List<Boolean>>
+    ) {
+        //        TODO размеры и количество мин запихать в условия
+
+        var timeBefore = System.currentTimeMillis()
+        var forAll = 0L
+        for (i in 0 until iterations) {
+            fieldGenerator(
+                width, height, mines
+            )
+            val currentTime = System.currentTimeMillis()
+            val timeFor = currentTime - timeBefore
+            timeBefore = currentTime
+            forAll += timeFor
+        }
+        println("переменная forAll $forAll")
+        println(
+            "метод выполнился $iterations раз в среднем за ${forAll / iterations.toDouble()} миллисекунд"
+        )
+
+    }
+
+    fun createFieldWithRecursionRandom(width: Int, height: Int, mines: Int): List<List<Boolean>> {
 //        TODO размеры и количество мин запихать в условия
         val field = mutableListOf<MutableList<Boolean>>()
         (0 until width).forEach {
@@ -32,11 +75,30 @@ class MainActivity : AppCompatActivity() {
             }
             field.add(line)
         }
+        (0 until mines).forEach {
+            val random = Random(System.currentTimeMillis())
+            placeMine(field, random::nextInt)
+        }
+        return field
+    }
+
+    fun createFieldWithRecursion(width: Int, height: Int, mines: Int): List<List<Boolean>> {
+        val field = mutableListOf<MutableList<Boolean>>()
+        (0 until width).forEach {
+            val line = mutableListOf<Boolean>()
+            (0 until height).forEach {
+                line.add(false)
+            }
+            field.add(line)
+        }
+        (0 until mines).forEach {
+            val random = Random(System.currentTimeMillis())
+            placeMine(field, Random::nextInt)
+        }
         return field
     }
 
     fun createNotEmptyField(width: Int, height: Int, mines: Int): List<MutableList<Boolean>> {
-//        TODO размеры и количество мин запихать в условия
         var i = 0
         val field = mutableListOf<MutableList<Boolean>>()
         (0 until width).forEach {
@@ -47,7 +109,6 @@ class MainActivity : AppCompatActivity() {
             }
             field.add(line)
         }
-//        TODO перемешать мины
         var j = 0
         (0 until width).forEach br@{ column ->
             (0 until height).forEach { tile ->
@@ -62,26 +123,15 @@ class MainActivity : AppCompatActivity() {
                 j++
             }
         }
-        println("счетчик $j")
         return field
     }
 
-    fun addMines(field: List<MutableList<Boolean>>, mines: Int): List<List<Boolean>> {
-        (0 until mines).forEach {
-            placeMine(field)
-
-        }
-
-        return field
-    }
-
-    fun placeMine(field: List<MutableList<Boolean>>) {
-        val random = Random(System.currentTimeMillis())
-        val widthRandom = random.nextInt(field.size)
-        val heightRandom = random.nextInt(field[0].size)
+    fun placeMine(field: List<MutableList<Boolean>>, intGenerator: (Int) -> Int) {
+        val widthRandom = intGenerator(field.size)
+        val heightRandom = intGenerator(field[0].size)
         val mine = field[widthRandom][heightRandom]
         if (mine) {
-            placeMine(field)
+            placeMine(field, intGenerator)
         } else {
             field[widthRandom][heightRandom] = true
         }
