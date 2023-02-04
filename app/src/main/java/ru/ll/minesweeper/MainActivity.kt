@@ -2,6 +2,7 @@ package ru.ll.minesweeper
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import ru.ll.minesweeper.databinding.ActivityMainBinding
 import java.util.concurrent.Executors
 import kotlin.random.Random
@@ -16,6 +17,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+        binding.editTextHeight.addTextChangedListener { checkForm() }
+        binding.editTextWidth.addTextChangedListener { checkForm() }
+        binding.editTextMines.addTextChangedListener { checkForm() }
+        binding.editTextIterations.addTextChangedListener { checkForm() }
         Executors.newCachedThreadPool().execute {
             testMinesweeper(10, 10, 18, 1000, ::createNotEmptyField)
             testMinesweeper(10, 10, 18, 1000, ::createFieldWithMines)
@@ -39,6 +44,13 @@ class MainActivity : AppCompatActivity() {
 //        )
 //        println("рекурсивная функция метода createFieldWithRecursion $indexRandom раз")
 //        println("печать ${createNotEmptyField(10, 10, 18).joinToString("\n")}")
+    }
+
+    fun checkForm() {
+        binding.buttonGo.isEnabled = (binding.editTextHeight.text.isNotEmpty()
+                && binding.editTextWidth.text.isNotEmpty()
+                && binding.editTextMines.text.isNotEmpty()
+                && binding.editTextIterations.text.isNotEmpty())
     }
 
     fun testMinesweeper(
