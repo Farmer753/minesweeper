@@ -17,15 +17,23 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+        binding.buttonGo.setOnClickListener {
+            val width = binding.editTextWidth.text.toString().toInt()
+            val height = binding.editTextHeight.text.toString().toInt()
+            val mines = binding.editTextMines.text.toString().toInt()
+            val iterations = binding.editTextIterations.text.toString().toInt()
+
+            Executors.newCachedThreadPool().execute {
+                testMinesweeper(width, height, mines, iterations, ::createNotEmptyField)
+                testMinesweeper(width, height, mines, iterations, ::createFieldWithMines)
+                testMinesweeper(width, height, mines, iterations, ::createFieldWithRecursion)
+            }
+        }
         binding.editTextHeight.addTextChangedListener { checkForm() }
         binding.editTextWidth.addTextChangedListener { checkForm() }
         binding.editTextMines.addTextChangedListener { checkForm() }
         binding.editTextIterations.addTextChangedListener { checkForm() }
-        Executors.newCachedThreadPool().execute {
-            testMinesweeper(10, 10, 18, 1000, ::createNotEmptyField)
-            testMinesweeper(10, 10, 18, 1000, ::createFieldWithMines)
-            testMinesweeper(10, 10, 18, 1000, ::createFieldWithRecursion)
-        }
+
 //        println(
 //            "поле рекурсивного метода ${
 //                createFieldWithRecursionRandom(10, 10, 18)
