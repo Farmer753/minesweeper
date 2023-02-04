@@ -4,15 +4,65 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context=".MainActivity">
 
-    <TextView
+    <EditText
+        android:id="@+id/editTextWidth"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:digits="0,1,2,3,4,5,6,7,8,9"
+        android:hint="@string/width"
+        android:inputType="number"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/editTextHeight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:digits="0,1,2,3,4,5,6,7,8,9"
+        android:hint="@string/height"
+        android:inputType="number"
+        app:layout_constraintTop_toBottomOf="@+id/editTextWidth" />
+
+    <EditText
+        android:id="@+id/editTextMines"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:digits="0,1,2,3,4,5,6,7,8,9"
+        android:hint="@string/mines"
+        android:inputType="number"
+        app:layout_constraintTop_toBottomOf="@+id/editTextHeight" />
+
+    <EditText
+        android:id="@+id/editTextIterations"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:digits="0,1,2,3,4,5,6,7,8,9"
+        android:hint="@string/iterations"
+        android:inputType="number"
+        app:layout_constraintTop_toBottomOf="@+id/editTextMines" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonGo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="16dp"
+        android:text="@string/go"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextIterations" />
+
+    <TextView
+        android:id="@+id/textViewResult"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonGo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
