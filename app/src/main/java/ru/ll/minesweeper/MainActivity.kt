@@ -24,21 +24,54 @@ class MainActivity : AppCompatActivity() {
             val iterations = binding.editTextIterations.text.toString().toInt()
 
             Executors.newCachedThreadPool().execute {
-                testMinesweeper(width, height, mines, iterations, ::createNotEmptyField)
-                testMinesweeper(width, height, mines, iterations, ::createFieldWithMines)
+                val resultNotEmptyField =
+                    testMinesweeper(width, height, mines, iterations, ::createNotEmptyField)
+                val resultFieldWithMines =
+                    testMinesweeper(width, height, mines, iterations, ::createFieldWithMines)
                 indexRecursion = 0
-                testMinesweeper(width, height, mines, iterations, ::createFieldWithRecursion)
+                val resultFieldWithRecursion =
+                    testMinesweeper(width, height, mines, iterations, ::createFieldWithRecursion)
+                val indexRecursionFieldWithRecursion = indexRecursion
                 println("Среднее число рекурсии ${indexRecursion / iterations}")
                 indexRecursion = 0
-                testMinesweeper(width, height, mines, iterations, ::createFieldWithRecursionRandom)
+                val resultFieldWithRecursionRandom = testMinesweeper(
+                    width,
+                    height,
+                    mines,
+                    iterations,
+                    ::createFieldWithRecursionRandom
+                )
+                val indexRecursionFieldWithRecursionRandom = indexRecursion
                 println("Среднее число рекурсии ${indexRecursion / iterations}")
                 println("поток ${Thread.currentThread().name}")
+                val resultText = """
+                    Среднее время выполнения генерации поля методом createNotEmptyField $resultNotEmptyField
+                    
+                    Среднее время выполнения генерации поля методом createFieldWithMines $resultFieldWithMines
+                    
+                    Среднее время выполнения генерации поля методом createFieldWithRecursion $resultFieldWithRecursion
+                    
+                    Среднее число рекурсии ${indexRecursionFieldWithRecursion / iterations}
+                    
+                    Среднее время выполнения генерации поля методом createFieldWithRecursionRandom $resultFieldWithRecursionRandom
+                    
+                    Среднее число рекурсии ${indexRecursionFieldWithRecursionRandom / iterations}
+                """.trimIndent()
+                runOnUiThread {
+                    binding.textViewResult.text = resultText
+                    println("поток ${Thread.currentThread().name}")
+                }
             }
         }
         binding.editTextHeight.addTextChangedListener { checkForm() }
         binding.editTextWidth.addTextChangedListener { checkForm() }
         binding.editTextMines.addTextChangedListener { checkForm() }
         binding.editTextIterations.addTextChangedListener { checkForm() }
+
+        binding.editTextHeight.setText("10")
+        binding.editTextWidth.setText("10")
+        binding.editTextMines.setText("10")
+        binding.editTextIterations.setText("100")
 
 //        println(
 //            "поле рекурсивного метода ${
@@ -73,7 +106,7 @@ class MainActivity : AppCompatActivity() {
         mines: Int,
         iterations: Int,
         fieldGenerator: (Int, Int, Int) -> List<List<Boolean>>
-    ) {
+    ): Double {
         //        TODO размеры и количество мин запихать в условия
 
         var timeBefore = System.currentTimeMillis()
@@ -90,7 +123,7 @@ class MainActivity : AppCompatActivity() {
         println(
             "метод выполнился $iterations раз в среднем за ${forAll / iterations.toDouble()} миллисекунд"
         )
-
+        return forAll / iterations.toDouble()
     }
 
     fun createFieldWithRecursionRandom(width: Int, height: Int, mines: Int): List<List<Boolean>> {
