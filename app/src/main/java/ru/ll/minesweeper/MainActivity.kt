@@ -10,7 +10,7 @@ import kotlin.random.Random
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    var indexRandom = 0
+    var indexRecursion = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,7 +26,13 @@ class MainActivity : AppCompatActivity() {
             Executors.newCachedThreadPool().execute {
                 testMinesweeper(width, height, mines, iterations, ::createNotEmptyField)
                 testMinesweeper(width, height, mines, iterations, ::createFieldWithMines)
+                indexRecursion = 0
                 testMinesweeper(width, height, mines, iterations, ::createFieldWithRecursion)
+                println("Среднее число рекурсии ${indexRecursion / iterations}")
+                indexRecursion = 0
+                testMinesweeper(width, height, mines, iterations, ::createFieldWithRecursionRandom)
+                println("Среднее число рекурсии ${indexRecursion / iterations}")
+                println("поток ${Thread.currentThread().name}")
             }
         }
         binding.editTextHeight.addTextChangedListener { checkForm() }
@@ -81,7 +87,6 @@ class MainActivity : AppCompatActivity() {
             timeBefore = currentTime
             forAll += timeFor
         }
-        println("переменная forAll $forAll")
         println(
             "метод выполнился $iterations раз в среднем за ${forAll / iterations.toDouble()} миллисекунд"
         )
@@ -115,7 +120,6 @@ class MainActivity : AppCompatActivity() {
             field.add(line)
         }
         (0 until mines).forEach {
-            val random = Random(System.currentTimeMillis())
             placeMine(field, Random::nextInt)
         }
         return field
@@ -158,7 +162,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             field[widthRandom][heightRandom] = true
         }
-        indexRandom++
+        indexRecursion++
     }
 
     fun createFieldWithMines(width: Int, height: Int, mines: Int): List<List<Boolean>> {
