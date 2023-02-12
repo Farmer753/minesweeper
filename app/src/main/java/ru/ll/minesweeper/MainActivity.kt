@@ -1,6 +1,8 @@
 package ru.ll.minesweeper
 
 import android.os.Bundle
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
 import ru.ll.minesweeper.databinding.ActivityMainBinding
@@ -18,10 +20,48 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
         binding.buttonGo.setOnClickListener {
+            KeyboardUtil.hideKeyboardFrom(this, view)
+            binding.progressView.visibility = View.VISIBLE
+
             val width = binding.editTextWidth.text.toString().toInt()
             val height = binding.editTextHeight.text.toString().toInt()
             val mines = binding.editTextMines.text.toString().toInt()
             val iterations = binding.editTextIterations.text.toString().toInt()
+
+            when {
+                width < 2 -> {
+                    Toast.makeText(this, "Добавь ширину поля", Toast.LENGTH_LONG).show()
+                    binding.editTextWidth.text.clear()
+                    binding.progressView.visibility = View.GONE
+                    return@setOnClickListener
+                }
+                height < 2 -> {
+                    Toast.makeText(this, "Добавь высоту поля", Toast.LENGTH_LONG).show()
+                    binding.editTextHeight.text.clear()
+                    binding.progressView.visibility = View.GONE
+                    return@setOnClickListener
+
+                }
+                mines < 1 -> {
+                    Toast.makeText(this, "Мины больше 0", Toast.LENGTH_LONG).show()
+                    binding.editTextMines.text.clear()
+                    binding.progressView.visibility = View.GONE
+                    return@setOnClickListener
+                }
+                mines > width * height -> {
+                    Toast.makeText(this, "Уменьши количество мин", Toast.LENGTH_LONG).show()
+                    binding.editTextMines.text.clear()
+                    binding.progressView.visibility = View.GONE
+                    return@setOnClickListener
+                }
+                iterations < 1 -> {
+                    Toast.makeText(this, "Увеличь количество итераций", Toast.LENGTH_LONG).show()
+                    binding.editTextIterations.text.clear()
+                    binding.progressView.visibility = View.GONE
+                    return@setOnClickListener
+                }
+            }
+
 
             Executors.newCachedThreadPool().execute {
                 val resultNotEmptyField =
@@ -30,7 +70,13 @@ class MainActivity : AppCompatActivity() {
                     testMinesweeper(width, height, mines, iterations, ::createFieldWithMines)
                 indexRecursion = 0
                 val resultFieldWithRecursion =
-                    testMinesweeper(width, height, mines, iterations, ::createFieldWithRecursion)
+                    testMinesweeper(
+                        width,
+                        height,
+                        mines,
+                        iterations,
+                        ::createFieldWithRecursion
+                    )
                 val indexRecursionFieldWithRecursion = indexRecursion
                 println("Среднее число рекурсии ${indexRecursion / iterations}")
                 indexRecursion = 0
@@ -45,19 +91,28 @@ class MainActivity : AppCompatActivity() {
                 println("Среднее число рекурсии ${indexRecursion / iterations}")
                 println("поток ${Thread.currentThread().name}")
                 val resultText = """
-                    Среднее время выполнения генерации поля методом createNotEmptyField $resultNotEmptyField
+                    Среднее время выполнения генерации поля методом createNotEmptyField ${
+                    String.format("%.2f", resultNotEmptyField)
+                } миллисекунд
                     
-                    Среднее время выполнения генерации поля методом createFieldWithMines $resultFieldWithMines
+                    Среднее время выполнения генерации поля методом createFieldWithMines ${
+                    String.format("%.2f", resultFieldWithMines)
+                } миллисекунд
                     
-                    Среднее время выполнения генерации поля методом createFieldWithRecursion $resultFieldWithRecursion
+                    Среднее время выполнения генерации поля методом createFieldWithRecursion ${
+                    String.format("%.2f", resultFieldWithRecursion)
+                } миллисекунд
                     
                     Среднее число рекурсии ${indexRecursionFieldWithRecursion / iterations}
                     
-                    Среднее время выполнения генерации поля методом createFieldWithRecursionRandom $resultFieldWithRecursionRandom
+                    Среднее время выполнения генерации поля методом createFieldWithRecursionRandom ${
+                    String.format("%.2f", resultFieldWithRecursionRandom)
+                } миллисекунд
                     
                     Среднее число рекурсии ${indexRecursionFieldWithRecursionRandom / iterations}
                 """.trimIndent()
                 runOnUiThread {
+                    binding.progressView.visibility = View.GONE
                     binding.textViewResult.text = resultText
                     println("поток ${Thread.currentThread().name}")
                 }
@@ -107,8 +162,6 @@ class MainActivity : AppCompatActivity() {
         iterations: Int,
         fieldGenerator: (Int, Int, Int) -> List<List<Boolean>>
     ): Double {
-        //        TODO размеры и количество мин запихать в условия
-
         var timeBefore = System.currentTimeMillis()
         var forAll = 0L
         for (i in 0 until iterations) {
@@ -120,14 +173,19 @@ class MainActivity : AppCompatActivity() {
             timeBefore = currentTime
             forAll += timeFor
         }
+
         println(
-            "метод выполнился $iterations раз в среднем за ${forAll / iterations.toDouble()} миллисекунд"
+            "метод выполнился $iterations раз в среднем за ${
+                String.format(
+                    "%.2f",
+                    forAll / iterations.toFloat()
+                )
+            } миллисекунд"
         )
         return forAll / iterations.toDouble()
     }
 
     fun createFieldWithRecursionRandom(width: Int, height: Int, mines: Int): List<List<Boolean>> {
-//        TODO размеры и количество мин запихать в условия
         val field = mutableListOf<MutableList<Boolean>>()
         (0 until width).forEach {
             val line = mutableListOf<Boolean>()
